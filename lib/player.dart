@@ -31,12 +31,20 @@ class _PlayerState extends State<Player> {
   int currentTrack = 0;
   final _player = AudioPlayer();
   bool isPlaying = false;
+  String duree = "";
 
   @override
   void initState() {
     super.initState();
+    _initSong(currentTrack);
+  }
 
-    _player.setAsset(myMusicList[currentTrack].urlSong);
+  Future<void> _initSong(currentTrack) async {
+    await _player
+        .setAsset(myMusicList[currentTrack].urlSong)
+        .then((value) => setState(() {
+              duree = "${value!.inMinutes}:${value.inSeconds % 60}";
+            }));
   }
 
   @override
@@ -81,14 +89,12 @@ class _PlayerState extends State<Player> {
                     iconSize: 45.0,
                     color: Colors.white,
                     onPressed: () {
-                      if (currentTrack > 0) {
-                        setState(() {
-                          currentTrack--;
-                          _player.setAsset(myMusicList[currentTrack].urlSong);
-                          _player.play();
-                          isPlaying = true;
-                        });
-                      }
+                      setState(() {
+                        (currentTrack == 0)
+                            ? currentTrack = myMusicList.length - 1
+                            : currentTrack--;
+                      });
+                      _initSong(currentTrack);
                     },
                     icon: const Icon(
                       Icons.skip_previous,
@@ -113,14 +119,12 @@ class _PlayerState extends State<Player> {
                     iconSize: 45.0,
                     color: Colors.white,
                     onPressed: () {
-                      if (currentTrack < myMusicList.length - 1) {
-                        setState(() {
-                          currentTrack++;
-                          _player.setAsset(myMusicList[currentTrack].urlSong);
-                          _player.play();
-                          isPlaying = true;
-                        });
-                      }
+                      setState(() {
+                        (currentTrack == myMusicList.length - 1)
+                            ? currentTrack = 0
+                            : currentTrack++;
+                      });
+                      _initSong(currentTrack);
                     },
                     icon: const Icon(Icons.skip_next),
                   )
@@ -129,14 +133,7 @@ class _PlayerState extends State<Player> {
               height: 10.0,
             ),
             Text(
-              _player.duration != null
-                  ? 'Durée: ' +
-                      _player.duration!.inMinutes.toString() +
-                      ':' +
-                      ((_player.duration!.inSeconds -
-                              _player.duration!.inMinutes * 60)
-                          .toString())
-                  : '',
+              duree,
               style: const TextStyle(color: Colors.white, fontSize: 15.0),
             ),
           ],
